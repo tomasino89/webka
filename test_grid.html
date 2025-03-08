@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaflet slider testovací mapa</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    
+    <!-- pro pouziti AJAXU -->
+        <!-- <script src="leaflet.ajax.min.js"></script> -->
+    <style>
+        body {
+            background-color: rgb(152, 244, 154);
+        }
+        #map {
+            height: 92vh;
+            border-style: dotted;
+            border: 1;
+        }
+        #slider {
+            -webkit-appearance: none;
+            appearance: none;
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, 20%);
+            /*background: rgb(255,255,255);*/
+            background: linear-gradient(90deg, rgb(241, 109, 109) 0%, rgb(255, 162, 162) 50%, rgb(255, 234, 234) 100%);
+            width: 90%;
+            height: 50px;
+            /*outline: auto;*/
+            opacity: 0.8;
+        }
+        #slider:hover {
+            opacity: 1;
+        }
+        #slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 30px;
+            height: 30px;
+            background-color: rgb(0, 0, 0);
+            cursor: pointer;
+        }
+        .rok {
+            padding-top: 6%;
+            padding-left: 2%;
+            padding-bottom: 3%;
+            color: rgb(11, 0, 91);
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-weight: bold;
+            font-size: 26px;
+        }
+        .parent {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            grid-column-gap: 0px;
+            grid-row-gap: 0px;
+            }
+            
+            .div1 { grid-area: 1 / 1 / 5 / 6; }
+            .div2 { grid-area: 5 / 1 / 6 / 2; }
+            .div3 { grid-area: 5 / 2 / 6 / 5; }
+            .div4 { grid-area: 5 / 5 / 6 / 6; }
+        button {
+            margin-top: 1%;
+            padding-left: 0%;
+            padding-bottom: 0%;
+            position: absolute;
+            left: 96%;
+        }
+    </style>
+</head>
+<body>
+    <div class="parent">
+        <div class="div1"><div id="map"></div></div>
+
+        <div class="div2">
+            <div class="rok">
+                <span id="rok">1900</span>
+            </div>
+        </div>
+
+        <div class="div3"> 
+            <div class="slider_ohraniceni">
+                <input id="slider" type="range" min="1900" max="2000" step="10" value="1900">
+                <br>
+            </div>
+        </div>
+        <div class="div4"><button onclick="spusteno()">Začít</button></div>
+    </div>
+
+<script>
+    // zapnuti mapy
+    var map = L.map('map').setView([49.593889, 17.250833], 15); // stred ve stredu Olomouce a zoom 15
+
+    // jestli to chapu spravne, tak z webu OSM se bere podkladova mapa a moje puvodni reseni bylo v podstate
+    // vymenovat s menicim se rokem tuto podkladovou vrstvu (mapu)
+    // akorat spis pravdepodobne chceme to, aby se podkladova mapa nemenila, ale pouze se menily body v ni
+    // kdybych chtel, aby se nacitaly externi GeoJSON soubory, ktere by obsahovaly tyhle body, tak by se to dalo udelat
+    // akorat asi pres tyhle dve reseni nize
+        /* AJAX reseni – pro vyuziti se musi odpoznamkovat i script v hlavicce
+            var geojson = new L.GeoJSON.AJAX("jsonek.geojson");
+            geojson.on('data:loaded', function(){
+            geojson.addTo(mymap);
+        });
+        */
+
+        /* jQuery reseni ? nevim jak funguje
+        $.getJSON("ukol3.geojson", function (data) {
+            var ukol3 = L.geoJSON(data,
+                {
+                    onEachFeature: function onEachFeature(feature, layer) {
+                        layer.bindPopup('<strong>' + feature.properties.Title + '</strong><br><br>Description: ' + feature.properties.Descr);
+                }
+                }).addTo(mymap);
+        });
+        */
+
+    // druhemu reseni nerozumim, ale to prvni funguje pouze v pripade, ze bych tyhle soubory mel na nejakem serveru
+    // protoze leaflet je musi nejak nacitat pres sebe asi a browser nepovoluje, aby mi cetl soubory primo z kompu, i kdyz mu to v kodu povolim
+    // tim padem jsou moznosti:
+
+        // 1. moznost – udelat server (Python, ...) a dat to na nej a nacitat pres tento AJAX
+        // 2. moznost – mit tyhle body a texty k nim primo v tomto jednom dokumentu (ale idk, jestli by pak nebyl moc velky)
+        // 3. moznost – WebStorm IDE mozna pri spousteni zaklada server, takze tam by to fungovalo, akorat idk jak bysme to pak odevzdali
+
+
+    // zakladni podkladova mapa od OSM
+    var baseLayer = L.tileLayer('http://sgx.geodatenzentrum.de/wmts_topplus_open/tile/1.0.0/web_grau/default/WEBMERCATOR/{z}/{y}/{x}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+    
+    // graficke meritko
+    var meritko = L.control.scale( {
+        metric: true,
+        maxWidth: 100,
+        position: 'bottomleft'
+
+    }).addTo(map);
+
+
+    // zmena vrstev podle vybraneho roku
+    // sem se pro kazdy rok prida bod/krouzek pro dany rok
+    var podkladova_mapa = {
+
+        1900: L.layerGroup([
+        L.circle([49.593889, 17.250833], 60, {
+            color: 'yellow',
+            fillColor: 'yellow',
+            fillOpacity: 0.5
+        }).addTo(map).bindPopup("jsem testovací kolečko"),
+
+        L.marker([49.593889, 17.26], {
+        }).addTo(map).bindPopup("<a href='text.html#semskoc'>jsem testovací špendlík</a>"),
+        ]),
+    
+        1910: L.layerGroup([L.circle([49.6, 17.2605], 60, {
+            color: 'orange',
+            fillColor: 'orange',
+            fillOpacity: 0.5
+        }).addTo(map).bindPopup("jsem testovací kolečko"),
+        L.marker([49.583889, 17.258], {
+
+        }).addTo(map).bindPopup("jsem testovací špendlík"),
+        
+        ]),
+
+        1920: L.layerGroup([L.circle([49.62, 17.2665], 80, {
+            color: 'red',
+            fillColor: 'red',
+            fillOpacity: 0.7
+        }).addTo(map).bindPopup("jsem testovací kolečko"),
+        L.marker([49.56587, 17.277], {
+
+        }).addTo(map).bindPopup("jsem testovací špendlík"),
+        
+        ]),
+
+        1930: L.layerGroup([L.circle([49.593889, 17.250833], 60, {
+            color: 'purple',
+            fillColor: 'purple',
+            fillOpacity: 0.5
+        }).addTo(map).bindPopup("jsem testovací kolečko"),
+        L.marker([49.593889, 17.26], {
+
+        }).addTo(map).bindPopup("jsem testovací špendlík"),
+        
+        ]),
+
+
+    };
+
+    // prvni zobrazovana vrstva (rok 1900)
+
+    function spusteno() {
+
+        var zobrazovana_mapa = podkladova_mapa[1900].addTo(map);
+
+        // Event listener pro změnu posuvníku
+        document.getElementById('slider').addEventListener('input', function(event) {
+            var zobrazovany_rok = event.target.value;
+            document.getElementById('rok').textContent = zobrazovany_rok;
+    
+            // odstraneni aktualni vrstvy
+            if (zobrazovana_mapa) {
+                map.removeLayer(zobrazovana_mapa);
+            }
+    
+            // Přidáme novou vrstvu odpovídající vybranému roku
+            zobrazovana_mapa = podkladova_mapa[zobrazovany_rok];
+            if (zobrazovana_mapa) {
+                zobrazovana_mapa.addTo(map);
+                
+            }
+        });
+    }
+
+
+</script>
+
+</body>
+</html>
