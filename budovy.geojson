@@ -1,0 +1,12 @@
+{
+"type": "FeatureCollection",
+"name": "budovy",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 1, "name": "Filozofická fakulta", "lon": 17.25913525, "lat": 49.59488452 }, "geometry": { "type": "Point", "coordinates": [ 17.259135250000043, 49.594884520000051 ] } },
+{ "type": "Feature", "properties": { "id": 2, "name": "Pedagogická fakulta", "lon": 17.26456404, "lat": 49.59548258 }, "geometry": { "type": "Point", "coordinates": [ 17.264564040000039, 49.595482580000066 ] } },
+{ "type": "Feature", "properties": { "id": 3, "name": "Přírodovědecká fakulta", "lon": 17.26555109, "lat": 49.593591 }, "geometry": { "type": "Point", "coordinates": [ 17.265551090000031, 49.593591 ] } },
+{ "type": "Feature", "properties": { "id": 4, "name": "Přírodovědecká fakulta", "lon": 17.26327658, "lat": 49.59218617 }, "geometry": { "type": "Point", "coordinates": [ 17.263276580000024, 49.592186170000048 ] } },
+{ "type": "Feature", "properties": { "id": 5, "name": "Právnická fakulta", "lon": 17.2626543, "lat": 49.59041965 }, "geometry": { "type": "Point", "coordinates": [ 17.262654300000065, 49.590419650000058 ] } }
+]
+}
